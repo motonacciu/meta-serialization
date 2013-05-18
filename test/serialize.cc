@@ -70,10 +70,10 @@ TEST(Deserialize, Ints) {
 	int v1 = deserialize<uint32_t>({0xA, 0, 0, 0});
 	EXPECT_EQ(v1, 10);
 
-	auto v2 = deserialize<uint64_t>(std::vector<uint8_t>({0x40, 0, 0, 0, 0, 0, 0, 0}));
+	auto v2 = deserialize<uint64_t>({0x40, 0, 0, 0, 0, 0, 0, 0});
 	EXPECT_EQ(v2, 64u);
 
-	auto v3 = deserialize<int>(std::vector<uint8_t>({0xFF, 0xFF, 0xFF, 0xFF}));
+	auto v3 = deserialize<int>({0xFF, 0xFF, 0xFF, 0xFF});
 	EXPECT_EQ(v3, -1);
 
 }
@@ -103,19 +103,15 @@ TEST(Serialize, Vector) {
 
 TEST(Deserialize, Vector) {
 
-	auto v1 = 
-		deserialize<std::vector<int>>(std::vector<uint8_t>{2,0,0,0,0,0,0,0,1,0,0,0,2,0,0,0});
-
+	auto v1 = deserialize<std::vector<int>>({2,0,0,0,0,0,0,0,1,0,0,0,2,0,0,0});
 	EXPECT_EQ(v1, std::vector<int>({1,2}));
-
 
 	auto v2 = 
 		deserialize<std::vector<std::vector<uint8_t>>>(
-				std::vector<uint8_t>(
-					{2, 0, 0, 0, 0, 0, 0, 0,
-						2, 0, 0, 0, 0, 0, 0, 0, 1, 2, 
-						2, 0, 0, 0, 0, 0, 0, 0, 3, 4 
-					}));
+				{2, 0, 0, 0, 0, 0, 0, 0,
+					2, 0, 0, 0, 0, 0, 0, 0, 1, 2, 
+					2, 0, 0, 0, 0, 0, 0, 0, 3, 4 
+				});
 
 	EXPECT_EQ(v2, std::vector<std::vector<uint8_t>>({{1,2},{3,4}}));
 }
@@ -146,15 +142,10 @@ TEST(Serialize, IntTuple) {
 }
 
 TEST(Deserialize, IntTuple) {
-	auto t1 = 
-		deserialize<std::tuple<int,int>>(std::vector<uint8_t>({1, 0, 0, 0, 2, 0, 0, 0}));
-
+	auto t1 = deserialize<std::tuple<int,int>>({1, 0, 0, 0, 2, 0, 0, 0});
 	EXPECT_EQ(t1, std::make_tuple(1,2));
 
-	auto t2 = 
-		deserialize<std::tuple<int,int,char>>(
-				std::vector<uint8_t>({1, 0, 0, 0, 2, 0, 0, 0, 3}));
-
+	auto t2 = deserialize<std::tuple<int,int,char>>({1, 0, 0, 0, 2, 0, 0, 0, 3});
 	EXPECT_EQ(t2, std::make_tuple(1,2,3));
 }
 
@@ -202,7 +193,8 @@ TEST(Deserialize, String) {
 
 TEST(Performance, Water) {
 
-	auto t1 = std::tuple<int,uint64_t,std::vector<uint8_t>,std::string>(10, 20, std::vector<uint8_t>{0,1,2,3,4,5,6,7,8,9},"hello cpp-love!");
+	auto t1 = std::tuple<int,uint64_t,std::vector<uint8_t>,std::string>(
+						10, 20, std::vector<uint8_t>{0,1,2,3,4,5,6,7,8,9},"hello cpp-love!");
 
 	auto start = std::chrono::high_resolution_clock::now();
 
@@ -213,20 +205,21 @@ TEST(Performance, Water) {
 		if (t1!=t2) { std::cerr << "PROBLEMS!" << std::endl; }
 	}
 
-    auto tot_time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now()-start).count();
-
+    auto tot_time = std::chrono::duration_cast<std::chrono::microseconds>(
+			 					std::chrono::system_clock::now()-start).count();
 	 std::cout << "time: " << tot_time << std::endl;
-
 }
 
- #include <boost/serialization/vector.hpp>
- 
- #include <boost/archive/text_iarchive.hpp>
- #include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/vector.hpp> 
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 namespace boost {
 namespace serialization {
 
+/** 
+ * serialization for tuples 
+ */
 template <unsigned N> struct Serialize {
   template <class Archive, typename ... Args>
   static void serialize(Archive &ar, std::tuple<Args ...> &t,
@@ -268,20 +261,21 @@ inline T from_bytes(const std::string &bytes) {
 }
 
 TEST(Performance, Boost) {
-
 	
-	auto t1 = std::tuple<int,uint64_t,std::vector<uint8_t>,std::string>(10, 20, std::vector<uint8_t>{0,1,2,3,4,5,6,7,8,9},"hello cpp-love!");
+	auto t1 = std::tuple<int,uint64_t,std::vector<uint8_t>,std::string>(
+				10, 20, std::vector<uint8_t>{0,1,2,3,4,5,6,7,8,9},"hello cpp-love!");
 
 	auto start = std::chrono::high_resolution_clock::now();
 
 	StreamType res;
 	for (size_t i=0; i<500000; ++i) {
 		std::string str = to_bytes(t1);
-		from_bytes<decltype(t1)>(str);
+		auto t2 = from_bytes<decltype(t1)>(str);
+		if (t1!=t2) { std::cerr << "PROBLEMS!" << std::endl; }
 	}
 
     auto tot_time = std::chrono::duration_cast<std::chrono::microseconds>
-		 (std::chrono::system_clock::now()-start).count();
+							 (std::chrono::system_clock::now()-start).count();
 
 	 std::cout << "time: " << tot_time << std::endl;
 
