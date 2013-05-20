@@ -3,6 +3,12 @@ meta-serialization
 
 A C++ header-only support for serialization of generic objects to be used when the type is known a-priori.
 
+Rationale
+=========
+* [PART I: get_size](http://cpplove.blogspot.co.at/2013/05/my-take-on-c-serialization-part-i.html)
+* [PART II: serialize](http://cpplove.blogspot.co.at/2013/05/my-take-on-serialization-part-ii.html)
+* [PART III: deserialize](http://cpplove.blogspot.co.at/2013/05/my-take-on-serialization-part-iii.html)
+
 License (BSD)
 =======
 Copyright (c) 2013, Simone Pellegrini All rights reserved.
@@ -28,4 +34,5 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
+
 
