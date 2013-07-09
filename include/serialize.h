@@ -31,6 +31,8 @@
 #include <tuple>
 #include <numeric>
 
+#include <cassert>
+
 typedef std::vector<uint8_t> StreamType;
 
 template <class T>
@@ -185,12 +187,13 @@ namespace detail {
 template <class T>
 inline void serialize(const T& obj, StreamType& res) {
 
+	size_t offset = res.size();
 	size_t size = get_size(obj);
 	res.resize(res.size() + size);
 
-	StreamType::iterator it = res.begin();
+	StreamType::iterator it = res.begin()+offset;
 	detail::serializer(obj,it);
-	assert(res.begin() + size == it);
+	assert(res.begin() + offset + size == it);
 }
 
 namespace detail {
@@ -291,9 +294,16 @@ namespace detail {
 } // end detail namespace 
 
 template <class T>
+inline T deserialize(StreamType::const_iterator& begin, const StreamType::const_iterator& end) {
+
+	return detail::deserialize_helper<T>::apply(begin, end);
+}
+
+template <class T>
 inline T deserialize(const StreamType& res) {
 
 	StreamType::const_iterator it = res.begin();
-	return detail::deserialize_helper<T>::apply(it, res.end());
+	return deserialize<T>(it, res.end());
 }
+
 

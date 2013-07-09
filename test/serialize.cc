@@ -89,6 +89,31 @@ TEST(Serialize, Ints) {
 
 }
 
+TEST(Serialize, MultipleInvocations) {
+
+	StreamType res;
+	serialize(std::vector<char>{1,2}, res);
+	serialize(std::vector<char>{3,4}, res);
+	EXPECT_EQ(4u+sizeof(size_t)*2, res.size());
+	EXPECT_EQ(res, std::vector<uint8_t>({0x2, 0, 0, 0, 0, 0, 0, 0,
+														1, 2, 
+													 0x2, 0, 0, 0, 0, 0, 0, 0, 
+													 	3, 4}));
+}
+
+TEST(Deerialize, MultipleInvocations) {
+
+	std::vector<uint8_t> res{0x2, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0x2, 0, 0, 0, 0, 0, 0, 0, 3, 4};
+
+	auto it = res.cbegin();
+	auto v1 = deserialize<std::vector<char>>(it, res.cend());
+	auto v2 = deserialize<std::vector<char>>(it, res.end());
+
+	EXPECT_EQ(v1, std::vector<char>({1,2}));
+	EXPECT_EQ(v2, std::vector<char>({3,4}));
+
+}
+
 TEST(Deserialize, Ints) {
 
 	int v1 = deserialize<uint32_t>({0xA, 0, 0, 0});
